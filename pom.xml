@@ -9,9 +9,14 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
-        <formatter.rules>formatter.xml</formatter.rules>
+
+        <formatter.rules>../formatter.xml</formatter.rules>
+        <formatter.skip>false</formatter.skip>
+        <formatter.goal>validate</formatter.goal>
+        <impsort.goal>check</impsort.goal>
+
         <checkstyle.rules>checkstyle.xml</checkstyle.rules>
+        <checkstyle.skip>false</checkstyle.skip>
     </properties>
 
     <modules>
@@ -23,51 +28,12 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                    <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
-                        <showDeprecation>true</showDeprecation>
-                        <compilerArgs>
-                            <!-- enable all default warnings -->
-                            <arg>-Xlint</arg>
-                            <!-- Verbose compiler messages -->
-                            <arg>-Xdiags:verbose</arg>
-                            <!-- treat warnings as errors : NOTE this is hard, javac is picky -->
-                            <arg>-Werror</arg>
-                            <!-- disable anachronic serialization warnings -->
-                            <arg>-Xlint:-serial</arg>
-                            <!-- disable misguided annotation warnings -->
-                            <arg>-Xlint:-processing</arg>
-                            <!-- disable warning about boostrap class path not set in conjunction
-                                with -source 1.7 -->
-                            <arg>-Xlint:-options</arg>
-                            <!-- disable pedantic try-with-resource unreferenced warnings -->
-                            <arg>-Xlint:-try</arg>
-
-                            <!-- enable errorprone -->
-                            <arg>-XDcompilePolicy=simple</arg>
-                            <arg>-Xplugin:ErrorProne -Xep:DefaultCharset:OFF</arg>
-                        </compilerArgs>
-
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>com.google.errorprone</groupId>
-                                <artifactId>error_prone_core</artifactId>
-                                <version>2.3.3</version>
-                            </path>
-                        </annotationProcessorPaths>
-                    </configuration>
-                </plugin>
-
-                <plugin>
                     <groupId>net.revelc.code.formatter</groupId>
                     <artifactId>formatter-maven-plugin</artifactId>
                     <version>2.10.0</version>
                     <configuration>
                         <configFile>${formatter.rules}</configFile>
+                        <skipFormatting>${formatter.skip}</skipFormatting>
                     </configuration>
                 </plugin>
 
@@ -77,6 +43,7 @@
                     <version>1.3.0</version>
                     <configuration>
                         <joinStaticWithNonStatic>true</joinStaticWithNonStatic>
+                        <skip>${formatter.skip}</skip>
                     </configuration>
                 </plugin>
 
@@ -91,6 +58,7 @@
                         </dependency>
                     </dependencies>
                     <configuration>
+                        <skip>${checkstyle.skip}</skip>
                         <consoleOutput>true</consoleOutput>
                         <configLocation>${checkstyle.rules}</configLocation>
                     </configuration>
@@ -111,6 +79,32 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>impsort-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>apply-import-order</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>${impsort.goal}</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>apply-format</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>${formatter.goal}</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -122,18 +116,9 @@
                     <missing>${checkstyle.rules}</missing>
                 </file>
             </activation>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <artifactId>maven-checkstyle-plugin</artifactId>
-                            <configuration>
-                                <skip>true</skip>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+            </properties>
         </profile>
 
         <profile>
@@ -143,67 +128,22 @@
                     <missing>${formatter.rules}</missing>
                 </file>
             </activation>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>net.revelc.code</groupId>
-                            <artifactId>impsort-maven-plugin</artifactId>
-                            <configuration>
-                                <skip>true</skip>
-                            </configuration>
-                        </plugin>
-                        <plugin>
-                            <groupId>net.revelc.code.formatter</groupId>
-                            <artifactId>formatter-maven-plugin</artifactId>
-                            <configuration>
-                                <skipFormatting>true</skipFormatting>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
+            <properties>
+                <formatter.skip>true</formatter.skip>
+            </properties>
         </profile>
 
         <profile>
-            <id>validate-code-format</id>
+            <id>disable-code-format</id>
             <activation>
                 <property>
                     <name>code.format</name>
-                    <!-- enforce formatting rules if auto formatting is disabled -->
-                    <value>!auto</value>
+                    <value>off</value>
                 </property>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>net.revelc.code</groupId>
-                        <artifactId>impsort-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>apply-import-order</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>net.revelc.code.formatter</groupId>
-                        <artifactId>formatter-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>apply-format</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>validate</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <properties>
+                <formatter.skip>true</formatter.skip>
+            </properties>
         </profile>
 
         <profile>
@@ -211,40 +151,13 @@
             <activation>
                 <property>
                     <name>code.format</name>
-                    <!-- always reformat code before building -->
                     <value>auto</value>
                 </property>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>net.revelc.code</groupId>
-                        <artifactId>impsort-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>check-import-order</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>sort</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>net.revelc.code.formatter</groupId>
-                        <artifactId>formatter-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>check-format</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>format</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <properties>
+                <impsort.goal>sort</impsort.goal>
+                <formatter.goal>format</formatter.goal>
+            </properties>
         </profile>
     </profiles>
 
