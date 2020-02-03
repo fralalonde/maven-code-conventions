@@ -1,8 +1,8 @@
 # maven-code-conventions ![pyramid](https://github.com/fralalonde/maven-code-conventions/blob/master/logo.png)
 
 # Rationale
-Strong formatting discipline makes better diffs, clearer pull requests.
-Use the same tools across IDE, CLI and CI to format and validate code.
+- Strong formatting discipline makes better diffs, clearer pull requests.
+- Use the same tools across IDE, CLI and CI to format and validate code.
 
 # Plugins
 - [impsort-maven-plugin](https://code.revelc.net/impsort-maven-plugin/)
