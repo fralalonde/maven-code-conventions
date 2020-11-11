@@ -7,4 +7,8 @@
         <artifactId>multi-module</artifactId>
         <version>2-SNAPSHOT</version>
     </parent>
+    <properties>
+        <formatter.skip>true</formatter.skip>
+        <checkstyle.skip>true</checkstyle.skip>
+    </properties>
 </project>
