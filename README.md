@@ -51,3 +51,26 @@ Exclude a module from formatting or checkstyle
     </properties>
 ```
 
+# Project README.md template
+Include and adapt the remaining text in your project's README #Developer section:
+
+## Coding conventions
+This projects enforces coding conventions at compile time.
+Rules are found in the `checkstyle.xml` and `formatter.xml` files.
+
+For portability across CLI, CI and IDE builds, formatting uses a standalone engine based on Eclipse's formatter. 
+IntelliJ users may use the [Eclipse Formatter](https://plugins.jetbrains.com/plugin/6546-eclipse-code-formatter) plugin. 
+
+Maven formatting behavior can be controlled through the `code.format` system property:
+- `validate` (default) fail the build if source code fails to pass style or formatting check. For CI, etc.
+- `auto` actively reformat source files as part of compilation process. For development environment.
+- `off` deactivate all formatting and checkstyle activity. For temporary usage.
+
+Example
+```
+export MAVEN_OPTS="${MAVEN_OPTS} -Dcode.format=[auto | off | check]"
+mvn package
+```
+
+Imports sorting is not run by default due to the lack of unified mechanism between IDE and Maven.
+It can be performed with `mvn impsort:sort` (code formatting must not be `off`)
