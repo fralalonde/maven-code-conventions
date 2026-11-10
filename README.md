@@ -1,9 +1,9 @@
-# maven-code-conventions ![pyramid](https://github.com/fralalonde/maven-code-conventions/blob/master/logo.png)
+# maven-code-conventions ![pyramid](logo.png)
 
 # Rationale
 - Strong formatting discipline makes better diffs, clearer pull requests.
 - Use the same tools across IDE, CLI and CI to format and validate code.
-- Rules are defined locally, per project. Decentralization for low coupling and minimal management overhead. 
+- Rules are defined locally, per project. Decentralization for low coupling and minimal management overhead.
 
 # Plugins
 - [impsort-maven-plugin](https://code.revelc.net/impsort-maven-plugin/)
@@ -11,24 +11,28 @@
 - [maven-checkstyle-plugin](https://maven.apache.org/plugins/maven-checkstyle-plugin/)
 
 # IDE Integration
-- [Eclipse](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) 
-- [IntelliJ](https://plugins.jetbrains.com/plugin/6546-eclipse-code-formatter)
+- [Eclipse formatter settings](https://help.eclipse.org/latest/topic/org.eclipse.jdt.doc.user/reference/preferences/java/codestyle/ref-preferences-formatter.htm)
+- [Adapter for Eclipse Code Formatter in IntelliJ](https://plugins.jetbrains.com/plugin/6546-adapter-for-eclipse-code-formatter)
+
+Maven 3.6.3+ running on JDK 21+ is required by the current plugins and Checkstyle version. The project still compiles Java 8 source. The IntelliJ adapter bundles its own Eclipse formatter version, so Maven validation is authoritative if IDE output differs.
 
 # Usage
 
 Possible values of the `code.format` Maven property:
-- `validate` fail the build if source code fails to pass style or formatting check (default). For CI, etc.
-- `auto` actively reformat source files as part of compilation process. For development environment.
-- `off` deactivate all formatting and checkstyle activity.
+- `validate` fails the build if source code fails style or formatting checks (default).
+- `auto` reformats source files and sorts imports during the build.
+- `off` skips formatting, import sorting, and Checkstyle.
 
 Transient usage example
 ```
-mvn -Dcode.format=[auto | off | check] package 
+mvn package
+mvn -Dcode.format=auto package
+mvn -Dcode.format=off package
 ```
 
 Persistent usage example
 ```
-export MAVEN_OPTS="${MAVEN_OPTS} -Dcode.format=[auto | off | check]"
+export MAVEN_OPTS="${MAVEN_OPTS} -Dcode.format=auto"
 ```
 
 
@@ -36,7 +40,7 @@ export MAVEN_OPTS="${MAVEN_OPTS} -Dcode.format=[auto | off | check]"
 Override parent configuration for single module:
 ```
     <properties>
-        <formatter.rules>${project.baseDir}/formatter.xml</formatter.rules>
+        <formatter.rules>${project.basedir}/formatter.xml</formatter.rules>
         [...]
         <checkstyle.rules>checkstyle.xml</checkstyle.rules>
     </properties>
@@ -55,22 +59,19 @@ Exclude a module from formatting or checkstyle
 Include and adapt the remaining text in your project's README #Developer section:
 
 ## Coding conventions
-This projects enforces coding conventions at compile time.
+This project enforces coding conventions during the Maven build.
 Rules are found in the `checkstyle.xml` and `formatter.xml` files.
 
-For portability across CLI, CI and IDE builds, formatting uses a standalone engine based on Eclipse's formatter. 
-IntelliJ users may use the [Eclipse Formatter](https://plugins.jetbrains.com/plugin/6546-eclipse-code-formatter) plugin. 
+Formatting uses Eclipse JDT through the formatter Maven plugin. IntelliJ users may use the [Adapter for Eclipse Code Formatter](https://plugins.jetbrains.com/plugin/6546-adapter-for-eclipse-code-formatter) plugin with the same `formatter.xml` file.
 
 Maven formatting behavior can be controlled through the `code.format` system property:
-- `validate` (default) fail the build if source code fails to pass style or formatting check. For CI, etc.
-- `auto` actively reformat source files as part of compilation process. For development environment.
-- `off` deactivate all formatting and checkstyle activity. For temporary usage.
+- `validate` (default) fails the build if source code fails style or formatting checks.
+- `auto` reformats source files and sorts imports during the build.
+- `off` skips formatting, import sorting, and Checkstyle temporarily.
 
 Example
 ```
-export MAVEN_OPTS="${MAVEN_OPTS} -Dcode.format=[auto | off | check]"
-mvn package
+mvn -Dcode.format=auto package
 ```
 
-Imports sorting is not run by default due to the lack of unified mechanism between IDE and Maven.
-It can be performed with `mvn impsort:sort` (code formatting must not be `off`)
+Import sorting is not checked by default because IDE import ordering may differ. The `auto` profile runs impsort, or it can be invoked directly with `mvn net.revelc.code:impsort-maven-plugin:1.13.0:sort`.
